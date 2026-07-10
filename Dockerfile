@@ -13,5 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Worker process — no HTTP port needed on Koyeb
+# Expose health port for Koyeb Web services (TCP/HTTP check on PORT)
+EXPOSE 8000
+ENV PORT=8000
+
 CMD ["python", "main.py"]

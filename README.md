@@ -178,40 +178,40 @@ git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
 git push -u origin main
 ```
 
-### C. Create a Koyeb Worker
+### C. Create a Koyeb service
 
 1. Open https://app.koyeb.com → **Create Service**
 2. Choose **GitHub** and select your repo
-3. **Service type:** choose **Worker** (not Web) — this app has no website
+3. **Service type:**
+   - **Web** (recommended on Free) — app listens on `PORT` (default `8000`) for health checks
+   - **or Worker** — no public port; disable health checks if the platform requires them
 4. **Builder:** Dockerfile (auto-detected from `Dockerfile`)
-5. Add environment variables:
+5. **Port:** `8000` (Web only). Health check: TCP or HTTP `/` on port `8000`
+6. Add environment variables:
 
 | Name | Value |
 |------|--------|
 | `API_ID` | your api id number |
 | `API_HASH` | your api hash |
 | `SESSION_STRING` | the string from `generate_session.py` |
+| `PORT` | `8000` (optional; Koyeb may set this) |
 | `CMD_PREFIX` | `.` (optional) |
-| `DATA_DIR` | `/data` (keep notes/reminders — see volume step below) |
+| `DATA_DIR` | `/data` (only if you attach a volume) |
 
-6. **Persist notes + reminders** (important):
-   - Koyeb **Volumes** do **not** work on Free / `eco-*` instances — need a **standard** instance
-   - Create a Volume in the **same region** as the service (e.g. name `userbot-data`, size 1 GB)
-   - Attach / mount that volume at path `/data`
-   - Keep env `DATA_DIR=/data` (Dockerfile already defaults this)
-   - SQLite then lives at `/data/userbot.db` and survives redeploys
-7. Click **Deploy**
-8. In the service logs you should see: `Userbot is running.`
-9. In Telegram Saved Messages, type `.help`
+7. **Persist notes + reminders** (optional, paid):
+   - Koyeb **Volumes** do **not** work on Free / `eco-*` instances
+   - Without a volume: login still works via `SESSION_STRING`; notes/reminders wipe on redeploy
+8. Click **Deploy**
+9. In the service logs you should see: `Health check listening on 0.0.0.0:8000` and `Userbot is running.`
+10. In Telegram Saved Messages, type `.help`
 
 ### Koyeb notes
 
-- Use **Worker**, not Web — no public port is needed
+- **TCP health check failed on port 8000** = old image with no health server, or wrong port. Redeploy latest code; set port `8000`
 - Notes / reminders / snippets / AFK / default channel = SQLite under `DATA_DIR`
-- No volume = data wiped on every rebuild
-- Volume + `DATA_DIR=/data` = data kept across deploys
+- No volume = data wiped on every rebuild (login still OK)
 - If login fails on Koyeb, regenerate `SESSION_STRING` on your PC and update the env var
-- Run only **one** instance (two workers = session conflicts)
+- Run only **one** instance (two copies = session conflicts)
 
 ---
 
