@@ -20,6 +20,8 @@ class Config:
     db_path: Path
     downloads_dir: Path
     waiting_time: float
+    turso_database_url: str | None
+    turso_auth_token: str | None
 
 
 def load_config(root: Path | None = None) -> Config:
@@ -70,4 +72,6 @@ def load_config(root: Path | None = None) -> Config:
         db_path=data_root / "userbot.db",
         downloads_dir=downloads_dir,
         waiting_time=waiting_time,
+        turso_database_url=os.getenv("TURSO_DATABASE_URL", "").strip() or None,
+        turso_auth_token=os.getenv("TURSO_AUTH_TOKEN", "").strip() or None,
     )

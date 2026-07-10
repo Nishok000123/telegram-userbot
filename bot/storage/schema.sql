@@ -30,3 +30,32 @@ CREATE TABLE IF NOT EXISTS download_log (
     source     TEXT,
     created_at TEXT NOT NULL
 );
+
+-- Personal labels on Telegram users (CRM-lite)
+CREATE TABLE IF NOT EXISTS tags (
+    user_id      INTEGER NOT NULL,
+    label        TEXT NOT NULL,
+    note         TEXT,
+    display_name TEXT,
+    username     TEXT,
+    updated_at   TEXT NOT NULL,
+    PRIMARY KEY (user_id, label)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tags_label ON tags(label);
+
+-- DM keyword auto-replies
+CREATE TABLE IF NOT EXISTS filters (
+    keyword    TEXT PRIMARY KEY,
+    response   TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+-- Locked user ids (auto-archive / ignore helpers)
+CREATE TABLE IF NOT EXISTS locks (
+    user_id      INTEGER PRIMARY KEY,
+    display_name TEXT,
+    username     TEXT,
+    reason       TEXT,
+    created_at   TEXT NOT NULL
+);

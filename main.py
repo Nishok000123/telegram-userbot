@@ -57,9 +57,17 @@ async def start_health_server(port: int) -> asyncio.AbstractServer:
 
 async def main() -> None:
     config = load_config(ROOT)
-    db = Database(config.db_path)
+    db = Database(
+        config.db_path,
+        turso_url=config.turso_database_url,
+        turso_token=config.turso_auth_token,
+    )
     await db.connect()
     await db.init_schema()
+    if db.using_turso:
+        print("Database: Turso (remote — survives Koyeb rebuilds)")
+    else:
+        print(f"Database: local SQLite ({config.db_path})")
 
     client = create_client(config)
     load_plugins(client, db, config)

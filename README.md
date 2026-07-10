@@ -3,7 +3,7 @@
 A simple personal Telegram **userbot** that runs as **your account**.  
 Type commands starting with `.` in any chat (Saved Messages is easiest).
 
-**Includes:** AFK, notes, reminders, media download, snippets, and channel tools.  
+**Includes:** AFK, notes, reminders, tags, chat tools, filters, media download, snippets, and channel tools.  
 **Does not include:** group moderation (ban/mute/warn/welcome).
 
 ---
@@ -209,9 +209,28 @@ git push -u origin main
 
 - **TCP health check failed on port 8000** = old image with no health server, or wrong port. Redeploy latest code; set port `8000`
 - Notes / reminders / snippets / AFK / default channel = SQLite under `DATA_DIR`
-- No volume = data wiped on every rebuild (login still OK)
+- No volume = data wiped on every rebuild (login still OK) — **or use Turso below**
 - If login fails on Koyeb, regenerate `SESSION_STRING` on your PC and update the env var
 - Run only **one** instance (two copies = session conflicts)
+
+### Free persistent DB (Turso) — no Koyeb volume
+
+Turso = free remote SQLite. Notes/tags/filters survive rebuilds.
+
+1. Sign up at https://turso.tech (free)
+2. Create a database (any name)
+3. Create a token for that DB
+4. Copy **Database URL** (`libsql://...`) and **Auth Token**
+5. Add Koyeb env vars:
+
+| Name | Value |
+|------|--------|
+| `TURSO_DATABASE_URL` | `libsql://your-db-....turso.io` |
+| `TURSO_AUTH_TOKEN` | your token |
+
+6. Redeploy. Logs should show: `Database: Turso (remote — survives Koyeb rebuilds)`
+
+Local PC without Turso still uses `data/userbot.db`.
 
 ---
 
@@ -232,6 +251,64 @@ git push -u origin main
 |---------|---------|
 | `.afk [reason]` | Turn AFK on (auto-replies to DMs/mentions) |
 | `.unafk` | Turn AFK off |
+
+### Tags (personal labels)
+
+| Command | Meaning |
+|---------|---------|
+| `.tag add friend [note]` | Tag user (reply, `@user`, or their DM) |
+| `.tag get` | Show tags for that user |
+| `.tag list` | All tags |
+| `.tag list client` | Everyone labeled `client` |
+| `.tag del friend` | Remove one label |
+| `.tag clear` | Remove all labels from user |
+| `.who` | Name + username + your tags |
+
+### Chat tools
+
+| Command | Meaning |
+|---------|---------|
+| `.purge 10` | Delete your last 10 messages in this chat |
+| `.stash` | Reply → copy to Saved Messages |
+| `.clone` / `.clone @chat` | Reply → copy to Saved or target chat |
+| `.mute 2h` | Mute this chat |
+| `.unmute` | Unmute this chat |
+| `.archive` / `.unarchive` | Archive / unarchive this chat |
+| `.read` | Mark this chat read |
+| `.block` / `.unblock` | Block / unblock (reply or `@user`) |
+| `.ghost 5` | Peek last messages without read receipts |
+
+### Later / export
+
+| Command | Meaning |
+|---------|---------|
+| `.later 2h` | Reply → remind in Saved with message link |
+| `.later 30m follow up` | Same + note |
+| `.export` | Dump notes/tags/snips/filters JSON → Saved |
+
+### Translate / OCR / quote
+
+| Command | Meaning |
+|---------|---------|
+| `.translate` / `.translate en` | Reply → translate (MyMemory; or OpenAI if key set) |
+| `.ocr` | Reply to photo → text (`OPENAI_API_KEY` required) |
+| `.quote` | Reply to text → quote image |
+
+### Filters (DM auto-reply)
+
+| Command | Meaning |
+|---------|---------|
+| `.filter add hi Hello!` | Auto-reply in DMs when keyword appears |
+| `.filter list` | List filters |
+| `.filter del hi` | Delete filter |
+
+### Lock
+
+| Command | Meaning |
+|---------|---------|
+| `.lock [reason]` | Lock user (reply/@user); auto-archive their DM + tag `spam` |
+| `.unlock` | Unlock user |
+| `.lock list` | Show locked users |
 
 ### Notes
 
@@ -307,8 +384,8 @@ Set `WAITING_TIME` in `.env` (seconds between posts) to reduce FloodWait risk.
 |------|----------|
 | `.env` | API secrets (never share) |
 | `sessions/userbot.session` | Login session (never share) |
-| `data/userbot.db` | Notes, reminders, snippets, settings |
-| `data/downloads/` | Files saved with `.dl` |
+| `data/userbot.db` | Notes, reminders, snippets, tags, filters, locks |
+| `data/downloads/` | Files saved with `.dl` / exports / quotes |
 
 ---
 
