@@ -1,0 +1,14 @@
+.venv
+__pycache__
+*.py[cod]
+.git
+.gitignore
+.env
+*.session
+*.session-journal
+data/userbot.db
+data/downloads/*
+!data/downloads/.gitkeep
+README.md
+.idea
+.vscode

@@ -1,0 +1,26 @@
+# Secrets — never commit
+.env
+*.session
+*.session-journal
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Runtime data (keep folders via .gitkeep)
+data/userbot.db
+data/downloads/*
+!data/downloads/.gitkeep
+
+# IDE / OS / Cursor
+.idea/
+.vscode/
+.agents/
+skills-lock.json
+.DS_Store
+Thumbs.db
