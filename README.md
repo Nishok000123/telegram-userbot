@@ -192,16 +192,24 @@ git push -u origin main
 | `API_HASH` | your api hash |
 | `SESSION_STRING` | the string from `generate_session.py` |
 | `CMD_PREFIX` | `.` (optional) |
-| `DATA_DIR` | `/data` (optional, if you attach a volume) |
+| `DATA_DIR` | `/data` (keep notes/reminders — see volume step below) |
 
-6. Click **Deploy**
-7. In the service logs you should see: `Userbot is running.`
-8. In Telegram Saved Messages, type `.help`
+6. **Persist notes + reminders** (important):
+   - Koyeb **Volumes** do **not** work on Free / `eco-*` instances — need a **standard** instance
+   - Create a Volume in the **same region** as the service (e.g. name `userbot-data`, size 1 GB)
+   - Attach / mount that volume at path `/data`
+   - Keep env `DATA_DIR=/data` (Dockerfile already defaults this)
+   - SQLite then lives at `/data/userbot.db` and survives redeploys
+7. Click **Deploy**
+8. In the service logs you should see: `Userbot is running.`
+9. In Telegram Saved Messages, type `.help`
 
 ### Koyeb notes
 
 - Use **Worker**, not Web — no public port is needed
-- Without a volume, notes/reminders/downloads reset when the instance is rebuilt — attach a volume at `/data` and set `DATA_DIR=/data` if you want them to persist
+- Notes / reminders / snippets / AFK / default channel = SQLite under `DATA_DIR`
+- No volume = data wiped on every rebuild
+- Volume + `DATA_DIR=/data` = data kept across deploys
 - If login fails on Koyeb, regenerate `SESSION_STRING` on your PC and update the env var
 - Run only **one** instance (two workers = session conflicts)
 
