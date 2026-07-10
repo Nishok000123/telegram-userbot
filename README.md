@@ -261,6 +261,20 @@ Time forms: `10m`, `2h`, `1d`, `1h30m`, `90s`.
 |---------|---------|
 | `.dl` | Reply to media → download into `data/downloads/` |
 
+### Save Restricted (by post link)
+
+Inspired by [VJ-Save-Restricted-Content](https://github.com/Nishok000123/VJ-Save-Restricted-Content). Uses **your** logged-in account (must already see the post).
+
+| Command | Meaning |
+|---------|---------|
+| `.save https://t.me/channel/123` | Save one post into current chat |
+| `.save https://t.me/c/ID/100-110` | Save a range (private channel) |
+| `.save https://t.me/b/botuser/55` | Save from a bot chat link |
+| `.join https://t.me/+xxxx` | Join private chat via invite (do this first if needed) |
+| `.scancel` | Cancel a running `.save` batch |
+
+Set `WAITING_TIME` in `.env` (seconds between posts) to reduce FloodWait risk.
+
 ### Channels
 
 | Command | Meaning |

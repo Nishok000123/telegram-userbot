@@ -19,6 +19,7 @@ class Config:
     session_string: str | None
     db_path: Path
     downloads_dir: Path
+    waiting_time: float
 
 
 def load_config(root: Path | None = None) -> Config:
@@ -30,6 +31,11 @@ def load_config(root: Path | None = None) -> Config:
     api_hash = os.getenv("API_HASH", "").strip()
     cmd_prefix = os.getenv("CMD_PREFIX", ".").strip() or "."
     session_string = os.getenv("SESSION_STRING", "").strip() or None
+    waiting_raw = os.getenv("WAITING_TIME", "3").strip() or "3"
+    try:
+        waiting_time = max(0.0, float(waiting_raw))
+    except ValueError as exc:
+        raise SystemExit("WAITING_TIME in .env must be a number (seconds).") from exc
 
     if not api_id_raw or not api_hash or api_hash == "your_api_hash_here":
         raise SystemExit(
@@ -63,4 +69,5 @@ def load_config(root: Path | None = None) -> Config:
         session_string=session_string,
         db_path=data_root / "userbot.db",
         downloads_dir=downloads_dir,
+        waiting_time=waiting_time,
     )
