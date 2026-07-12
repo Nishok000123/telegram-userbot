@@ -55,7 +55,7 @@ async def resolve_user(
 
 def message_permalink(chat, chat_id: int, msg_id: int) -> str:
     """Best-effort deep link to a message."""
-    username = getattr(chat, "username", None)
+    username = getattr(chat, "username", None) if chat is not None else None
     if username:
         return f"https://t.me/{username}/{msg_id}"
 
@@ -63,8 +63,11 @@ def message_permalink(chat, chat_id: int, msg_id: int) -> str:
     if s.startswith("-100"):
         return f"https://t.me/c/{s[4:]}/{msg_id}"
 
-    if isinstance(chat, User) or chat_id > 0:
+    if chat is not None and (isinstance(chat, User) or chat_id > 0):
         return f"tg://openmessage?user_id={abs(chat_id)}&message_id={msg_id}"
+
+    if chat_id > 0:
+        return f"tg://openmessage?user_id={chat_id}&message_id={msg_id}"
 
     return f"(chat `{chat_id}` msg `{msg_id}`)"
 

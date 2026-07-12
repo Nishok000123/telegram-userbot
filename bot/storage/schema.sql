@@ -59,3 +59,31 @@ CREATE TABLE IF NOT EXISTS locks (
     reason       TEXT,
     created_at   TEXT NOT NULL
 );
+
+-- Tagged messages stored in the vault channel
+CREATE TABLE IF NOT EXISTS msg_tags (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag             TEXT NOT NULL,
+    vault_msg_id    INTEGER NOT NULL,
+    vault_chat_id   INTEGER NOT NULL,
+    source_chat_id  INTEGER,
+    source_msg_id   INTEGER,
+    topic_id        INTEGER,
+    note            TEXT,
+    preview         TEXT,
+    created_at      TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_msg_tags_tag ON msg_tags(tag);
+
+-- Chat activity for inactive organizer
+CREATE TABLE IF NOT EXISTS chat_activity (
+    chat_id       INTEGER PRIMARY KEY,
+    title         TEXT,
+    kind          TEXT,
+    last_seen_at  TEXT,
+    last_open_at  TEXT,
+    joined_at     TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_activity_seen ON chat_activity(last_seen_at);

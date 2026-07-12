@@ -22,6 +22,7 @@ class Config:
     waiting_time: float
     turso_database_url: str | None
     turso_auth_token: str | None
+    org_inactive_days: int
 
 
 def load_config(root: Path | None = None) -> Config:
@@ -62,6 +63,11 @@ def load_config(root: Path | None = None) -> Config:
     downloads_dir.mkdir(parents=True, exist_ok=True)
     sessions_dir.mkdir(parents=True, exist_ok=True)
 
+    try:
+        org_inactive_days = max(1, int(os.getenv("ORG_INACTIVE_DAYS", "30").strip() or "30"))
+    except ValueError as exc:
+        raise SystemExit("ORG_INACTIVE_DAYS in .env must be an integer.") from exc
+
     return Config(
         root=root,
         api_id=api_id,
@@ -74,4 +80,5 @@ def load_config(root: Path | None = None) -> Config:
         waiting_time=waiting_time,
         turso_database_url=os.getenv("TURSO_DATABASE_URL", "").strip() or None,
         turso_auth_token=os.getenv("TURSO_AUTH_TOKEN", "").strip() or None,
+        org_inactive_days=org_inactive_days,
     )

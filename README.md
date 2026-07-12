@@ -3,8 +3,8 @@
 A simple personal Telegram **userbot** that runs as **your account**.  
 Type commands starting with `.` in any chat (Saved Messages is easiest).
 
-**Includes:** AFK, notes, reminders, tags, chat tools, filters, media download, snippets, and channel tools.  
-**Does not include:** group moderation (ban/mute/warn/welcome).
+**Includes:** AFK, notes, reminders, tags, vault msg-tags, folders, organizer, chat tools, filters, media download, snippets, and channel tools.  
+**Does not include:** group moderation (ban/mute/warn/welcome). Auto-leave never.
 
 ---
 
@@ -264,7 +264,42 @@ Local PC without Turso still uses `data/userbot.db`.
 | `.tag clear` | Remove all labels from user |
 | `.who` | Name + username + your tags |
 
-### Chat tools
+### Vault / message tags (Premium-like)
+
+| Command | Meaning |
+|---------|---------|
+| `.vault setup` | Create/find private **UB Vault** channel |
+| `.mtag study [note]` | Reply → copy to vault with `#study` |
+| `.msave study [note]` | Same as `.mtag` |
+| `.msearch study` | List tagged msgs + vault links |
+| `.mtags` | Tag counts |
+| `.mtag del 12` | Remove index (tries delete vault msg) |
+
+### Folders (Telegram tabs)
+
+| Command | Meaning |
+|---------|---------|
+| `.folder list` | List custom folders |
+| `.folder new Work` | Create folder |
+| `.folder add Work` | Add current chat (or `@peer`) |
+| `.folder rm Work` | Remove chat from folder |
+| `.folder del Work` | Delete folder |
+
+### Organizer (inactive suggest + copyright leave)
+
+| Command | Meaning |
+|---------|---------|
+| `.org scan` | Refresh activity from dialogs |
+| `.org inactive [days]` | List quiet channels/groups |
+| `.org clean` | Suggest archive/leave commands (you confirm) |
+| `.org archive <id\|@>` | Archive one chat |
+| `.org leave <id\|@>` | Leave one chat (explicit; never auto for inactive) |
+| `.org copyright` | List channels Telegram marks copyright-restricted |
+| `.org copyright leave` | Leave those channels now |
+
+Detect via Telegram `restriction_reason` (copyright/DMCA/piracy keywords). Also auto-leaves on `.org scan`, ~12h background sweep, and when a restricted channel posts.
+
+### Notes
 
 | Command | Meaning |
 |---------|---------|
@@ -354,6 +389,9 @@ Inspired by [VJ-Save-Restricted-Content](https://github.com/Nishok000123/VJ-Save
 |---------|---------|
 | `.save https://t.me/channel/123` | Save one post into current chat |
 | `.save https://t.me/c/ID/100-110` | Save a range (private channel) |
+| `.save https://t.me/c/ID/TOPIC/MSG` | Save from a **forum topic** |
+| `.save https://t.me/group/TOPIC/MSG` | Public group topic post |
+| `.save vault <link>` | Save into UB Vault |
 | `.save https://t.me/b/botuser/55` | Save from a bot chat link |
 | `.join https://t.me/+xxxx` | Join private chat via invite (do this first if needed) |
 | `.scancel` | Cancel a running `.save` batch |
@@ -384,7 +422,7 @@ Set `WAITING_TIME` in `.env` (seconds between posts) to reduce FloodWait risk.
 |------|----------|
 | `.env` | API secrets (never share) |
 | `sessions/userbot.session` | Login session (never share) |
-| `data/userbot.db` | Notes, reminders, snippets, tags, filters, locks |
+| `data/userbot.db` | Notes, reminders, snippets, tags, msg_tags, activity, filters, locks |
 | `data/downloads/` | Files saved with `.dl` / exports / quotes |
 
 ---

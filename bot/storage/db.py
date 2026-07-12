@@ -321,6 +321,136 @@ class Database:
         await self.db.commit()
         return (cur.rowcount or 0) > 0
 
+    # ---- msg tags (vault) ----
+
+    async def add_msg_tag(
+        self,
+        tag: str,
+        vault_msg_id: int,
+        vault_chat_id: int,
+        source_chat_id: int | None,
+        source_msg_id: int | None,
+        topic_id: int | None,
+        note: str | None,
+        preview: str | None,
+        created_at: str,
+    ) -> int:
+        cur = await self.db.execute(
+            "INSERT INTO msg_tags("
+            "tag, vault_msg_id, vault_chat_id, source_chat_id, source_msg_id, "
+            "topic_id, note, preview, created_at) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                tag,
+                vault_msg_id,
+                vault_chat_id,
+                source_chat_id,
+                source_msg_id,
+                topic_id,
+                note,
+                preview,
+                created_at,
+            ),
+        )
+        await self.db.commit()
+        return int(cur.lastrowid or 0)
+
+    async def search_msg_tags(self, tag: str, limit: int = 30) -> list[dict[str, Any]]:
+        cur = await self.db.execute(
+            "SELECT id, tag, vault_msg_id, vault_chat_id, source_chat_id, "
+            "source_msg_id, topic_id, note, preview, created_at "
+            "FROM msg_tags WHERE tag = ? COLLATE NOCASE "
+            "ORDER BY id DESC LIMIT ?",
+            (tag, limit),
+        )
+        return await cur.fetchall()
+
+    async def list_msg_tag_counts(self) -> list[dict[str, Any]]:
+        cur = await self.db.execute(
+            "SELECT tag, COUNT(*) AS cnt FROM msg_tags "
+            "GROUP BY tag COLLATE NOCASE ORDER BY cnt DESC, tag COLLATE NOCASE"
+        )
+        return await cur.fetchall()
+
+    async def get_msg_tag(self, tag_id: int) -> dict[str, Any] | None:
+        cur = await self.db.execute(
+            "SELECT id, tag, vault_msg_id, vault_chat_id, source_chat_id, "
+            "source_msg_id, topic_id, note, preview, created_at "
+            "FROM msg_tags WHERE id = ?",
+            (tag_id,),
+        )
+        return await cur.fetchone()
+
+    async def delete_msg_tag(self, tag_id: int) -> dict[str, Any] | None:
+        row = await self.get_msg_tag(tag_id)
+        if not row:
+            return None
+        await self.db.execute("DELETE FROM msg_tags WHERE id = ?", (tag_id,))
+        await self.db.commit()
+        return row
+
+    # ---- chat activity ----
+
+    async def upsert_chat_activity(
+        self,
+        chat_id: int,
+        title: str | None,
+        kind: str | None,
+        last_seen_at: str | None = None,
+        last_open_at: str | None = None,
+        joined_at: str | None = None,
+    ) -> None:
+        cur = await self.db.execute(
+            "SELECT chat_id, title, kind, last_seen_at, last_open_at, joined_at "
+            "FROM chat_activity WHERE chat_id = ?",
+            (chat_id,),
+        )
+        existing = await cur.fetchone()
+        if existing is None:
+            await self.db.execute(
+                "INSERT INTO chat_activity("
+                "chat_id, title, kind, last_seen_at, last_open_at, joined_at) "
+                "VALUES(?, ?, ?, ?, ?, ?)",
+                (chat_id, title, kind, last_seen_at, last_open_at, joined_at),
+            )
+        else:
+            await self.db.execute(
+                "UPDATE chat_activity SET "
+                "title = COALESCE(?, title), "
+                "kind = COALESCE(?, kind), "
+                "last_seen_at = COALESCE(?, last_seen_at), "
+                "last_open_at = COALESCE(?, last_open_at), "
+                "joined_at = COALESCE(?, joined_at) "
+                "WHERE chat_id = ?",
+                (title, kind, last_seen_at, last_open_at, joined_at, chat_id),
+            )
+        await self.db.commit()
+
+    async def list_inactive_chats(
+        self, before_iso: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        cur = await self.db.execute(
+            "SELECT chat_id, title, kind, last_seen_at, last_open_at, joined_at "
+            "FROM chat_activity "
+            "WHERE COALESCE(last_open_at, last_seen_at, joined_at, '') < ? "
+            "ORDER BY COALESCE(last_open_at, last_seen_at, joined_at) ASC "
+            "LIMIT ?",
+            (before_iso, limit),
+        )
+        return await cur.fetchall()
+
+    async def get_chat_activity(self, chat_id: int) -> dict[str, Any] | None:
+        cur = await self.db.execute(
+            "SELECT chat_id, title, kind, last_seen_at, last_open_at, joined_at "
+            "FROM chat_activity WHERE chat_id = ?",
+            (chat_id,),
+        )
+        return await cur.fetchone()
+
+    async def delete_chat_activity(self, chat_id: int) -> None:
+        await self.db.execute("DELETE FROM chat_activity WHERE chat_id = ?", (chat_id,))
+        await self.db.commit()
+
     # ---- export ----
 
     async def export_bundle(self) -> dict[str, Any]:
@@ -339,4 +469,5 @@ class Database:
             "filters": await self.list_filters(),
             "locks": await self.list_locks(),
             "reminders": await self.list_reminders(include_done=False),
+            "msg_tags": await self.list_msg_tag_counts(),
         }
